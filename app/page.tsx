@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
-// Initial leaderboard data
-const initialData = [
+// Type for leaderboard entry
+type LeaderboardEntry = {
+  id?: number;
+  name: string;
+  score: number;
+};
+
+// Initial leaderboard data (fallback)
+const initialData: LeaderboardEntry[] = [
   { name: "SpeedDemon", score: 142 },
   { name: "TypeMaster99", score: 138 },
   { name: "KeyboardNinja", score: 135 },
@@ -17,10 +25,36 @@ const initialData = [
 ];
 
 export default function Home() {
-  const [leaderboardData, setLeaderboardData] = useState(initialData);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(initialData);
   const [editMode, setEditMode] = useState(false);
   const [newName, setNewName] = useState('');
   const [newScore, setNewScore] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch leaderboard data from Supabase
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sit-leaderboard')
+        .select('*')
+        .order('score', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching leaderboard:', error);
+        // Keep initial data if there's an error
+      } else if (data && data.length > 0) {
+        setLeaderboardData(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Secret keyboard shortcut: Ctrl+Shift+E
   useEffect(() => {
@@ -35,32 +69,92 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  const addPlayer = () => {
+  const addPlayer = async () => {
     if (newName.trim() && newScore.trim()) {
       const score = parseInt(newScore);
       if (!isNaN(score)) {
         const newPlayer = { name: newName.trim(), score };
-        const updatedData = [...leaderboardData, newPlayer].sort((a, b) => b.score - a.score);
-        setLeaderboardData(updatedData);
+        
+        // Insert into Supabase
+        const { data, error } = await supabase
+          .from('sit-leaderboard')
+          .insert([newPlayer])
+          .select();
+
+        if (error) {
+          console.error('Error adding player:', error);
+          // Fallback to local state
+          const updatedData = [...leaderboardData, newPlayer].sort((a, b) => b.score - a.score);
+          setLeaderboardData(updatedData);
+        } else {
+          // Refresh from database
+          fetchLeaderboard();
+        }
+        
         setNewName('');
         setNewScore('');
       }
     }
   };
 
-  const removePlayer = (index: number) => {
+  const removePlayer = async (index: number) => {
+    const player = leaderboardData[index];
+    
+    if (player.id) {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('sit-leaderboard')
+        .delete()
+        .eq('id', player.id);
+
+      if (error) {
+        console.error('Error removing player:', error);
+      }
+    }
+    
+    // Update local state
     const updatedData = leaderboardData.filter((_, i) => i !== index);
     setLeaderboardData(updatedData);
   };
 
-  const updateScore = (index: number, newScore: number) => {
+  const updateScore = async (index: number, newScore: number) => {
+    const player = leaderboardData[index];
+    
+    if (player.id) {
+      // Update in Supabase
+      const { error } = await supabase
+        .from('sit-leaderboard')
+        .update({ score: newScore })
+        .eq('id', player.id);
+
+      if (error) {
+        console.error('Error updating score:', error);
+      }
+    }
+    
+    // Update local state
     const updatedData = [...leaderboardData];
     updatedData[index].score = newScore;
     updatedData.sort((a, b) => b.score - a.score);
     setLeaderboardData(updatedData);
   };
 
-  const updateName = (index: number, newName: string) => {
+  const updateName = async (index: number, newName: string) => {
+    const player = leaderboardData[index];
+    
+    if (player.id) {
+      // Update in Supabase
+      const { error } = await supabase
+        .from('sit-leaderboard')
+        .update({ name: newName })
+        .eq('id', player.id);
+
+      if (error) {
+        console.error('Error updating name:', error);
+      }
+    }
+    
+    // Update local state
     const updatedData = [...leaderboardData];
     updatedData[index].name = newName;
     setLeaderboardData(updatedData);
