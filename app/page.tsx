@@ -68,7 +68,9 @@ export default function Home() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(45deg, #000066 0%, #0000CC 100%)',
+      background: 'linear-gradient(45deg, #000066 0%, #0000CC 50%, #000066 100%)',
+      backgroundSize: '400% 400%',
+      animation: 'gradientShift 10s ease infinite',
       padding: '20px',
       fontFamily: 'Arial, sans-serif'
     }}>
@@ -99,11 +101,10 @@ export default function Home() {
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
                     fontFamily: 'Comic Sans MS, cursive',
-                    fontSize: '48px',
+                    fontSize: '42px',
                     color: '#FFFF00',
                     fontWeight: 'bold',
-                    textShadow: '3px 3px 0px #000000, 6px 6px 0px #FF0000',
-                    animation: 'marquee 8s linear infinite alternate'
+                    textShadow: '3px 3px 0px #000000, 6px 6px 0px #FF0000'
                   }}>
                     ⭐ Monkey Type Leaderboard ⭐
                   </div>
@@ -112,7 +113,7 @@ export default function Home() {
                     fontFamily: 'Arial',
                     fontSize: '24px',
                     color: '#00FF00',
-                    animation: 'blink 1s infinite'
+                    animation: 'pulse 1.5s ease-in-out infinite'
                   }}>
                     🔥 TOP 10 FASTEST TYPISTS 🔥
                   </div>
@@ -474,24 +475,6 @@ export default function Home() {
         </table>
       </div>
 
-      {/* Floating "under construction" style badge */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        right: '20px',
-        backgroundColor: '#FFFF00',
-        border: '4px outset #FFD700',
-        padding: '10px',
-        fontFamily: 'Comic Sans MS, cursive',
-        fontWeight: 'bold',
-        color: '#FF0000',
-        fontSize: '12px',
-        boxShadow: '5px 5px 0px #000000',
-        animation: 'blink 1s infinite'
-      }}>
-        ⚠️ UNDER CONSTRUCTION ⚠️
-      </div>
-
       {/* Edit Mode Indicator */}
       {editMode && (
         <div style={{
@@ -531,6 +514,15 @@ export default function Home() {
         @keyframes marquee {
           0% { transform: translateX(-20%); }
           100% { transform: translateX(20%); }
+        }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
         }
       `}</style>
     </div>
