@@ -11,18 +11,7 @@ type LeaderboardEntry = {
 };
 
 // Initial leaderboard data (fallback)
-const initialData: LeaderboardEntry[] = [
-  { name: "SpeedDemon", score: 142 },
-  { name: "TypeMaster99", score: 138 },
-  { name: "KeyboardNinja", score: 135 },
-  { name: "FastFingers", score: 129 },
-  { name: "QuickTyper", score: 126 },
-  { name: "RapidRacer", score: 122 },
-  { name: "SwiftKeys", score: 118 },
-  { name: "TurboTypist", score: 115 },
-  { name: "VelocityViper", score: 112 },
-  { name: "LightningHands", score: 108 },
-];
+const initialData: LeaderboardEntry[] = [];
 
 export default function Home() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(initialData);
