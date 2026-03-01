@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 type LeaderboardEntry = {
   id?: number;
   name: string;
+  phone?: string;
   score: number;
 };
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(initialData);
   const [editMode, setEditMode] = useState(false);
   const [newName, setNewName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
   const [newScore, setNewScore] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -62,7 +64,7 @@ export default function Home() {
     if (newName.trim() && newScore.trim()) {
       const score = parseInt(newScore);
       if (!isNaN(score)) {
-        const newPlayer = { name: newName.trim(), score };
+        const newPlayer = { name: newName.trim(), phone: newPhone.trim(), score };
         
         // Insert into Supabase
         const { data, error } = await supabase
@@ -81,6 +83,7 @@ export default function Home() {
         }
         
         setNewName('');
+        setNewPhone('');
         setNewScore('');
       }
     }
@@ -148,6 +151,27 @@ export default function Home() {
     updatedData[index].name = newName;
     setLeaderboardData(updatedData);
   };
+
+  const updatePhone = async (index: number, newPhone: string) => {
+    const player = leaderboardData[index];
+
+    if (player.id) {
+      // Update in Supabase
+      const { error } = await supabase
+        .from('sit-leaderboard')
+        .update({ phone: newPhone })
+        .eq('id', player.id);
+
+      if (error) {
+        console.error('Error updating phone:', error);
+      }
+    }
+
+    // Update local state
+    const updatedData = [...leaderboardData];
+    updatedData[index].phone = newPhone;
+    setLeaderboardData(updatedData);
+  };
   return (
     <div style={{
       minHeight: '100vh',
@@ -174,7 +198,7 @@ export default function Home() {
             {/* Header with marquee */}
             <tr>
               <td 
-                colSpan={3}
+                colSpan={editMode ? 5 : 3}
                 style={{
                   background: 'linear-gradient(180deg, #000080 0%, #0000FF 100%)',
                   padding: '20px',
@@ -249,6 +273,23 @@ export default function Home() {
               >
                 NAME
               </td>
+              {editMode && (
+                <td 
+                  width="170"
+                  align="center"
+                  style={{
+                    backgroundColor: '#008080',
+                    border: '3px ridge #FFFFFF',
+                    padding: '10px',
+                    fontWeight: 'bold',
+                    color: '#FFFF00',
+                    fontFamily: 'Arial Black, Arial, sans-serif',
+                    fontSize: '20px'
+                  }}
+                >
+                  PHONE
+                </td>
+              )}
               <td 
                 width="150"
                 align="center"
@@ -340,6 +381,32 @@ export default function Home() {
                       player.name
                     )}
                   </td>
+                  {editMode && (
+                    <td 
+                      align="center"
+                      style={{
+                        backgroundColor: bgColor,
+                        border: '2px inset #999999',
+                        padding: '12px 8px'
+                      }}
+                    >
+                      <input
+                        type="text"
+                        value={player.phone || ''}
+                        onChange={(e) => updatePhone(index, e.target.value)}
+                        style={{
+                          width: '150px',
+                          fontFamily: 'Courier New, monospace',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          border: '2px inset #999999',
+                          padding: '4px',
+                          backgroundColor: '#FFFFCC',
+                          textAlign: 'center'
+                        }}
+                      />
+                    </td>
+                  )}
                   <td 
                     align="center"
                     style={{
@@ -452,6 +519,31 @@ export default function Home() {
                   }}
                 >
                   <input
+                    type="text"
+                    value={newPhone}
+                    onChange={(e) => setNewPhone(e.target.value)}
+                    placeholder="Phone"
+                    style={{
+                      width: '150px',
+                      fontFamily: 'Courier New, monospace',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      border: '2px inset #999999',
+                      padding: '4px',
+                      textAlign: 'center',
+                      backgroundColor: '#FFFFFF'
+                    }}
+                  />
+                </td>
+                <td 
+                  align="center"
+                  style={{
+                    backgroundColor: '#CCFFCC',
+                    border: '2px inset #999999',
+                    padding: '12px 8px'
+                  }}
+                >
+                  <input
                     type="number"
                     value={newScore}
                     onChange={(e) => setNewScore(e.target.value)}
@@ -499,7 +591,7 @@ export default function Home() {
             {/* Footer */}
             <tr>
               <td 
-                colSpan={3}
+                colSpan={editMode ? 5 : 3}
                 style={{
                   backgroundColor: '#000080',
                   padding: '15px',
